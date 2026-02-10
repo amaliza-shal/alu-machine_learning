@@ -13,7 +13,7 @@ def poly_derivative(poly):
         if type(poly[i]) not in [int, float]:
             return None
         derivative.append(poly[i] * i)
-    
+
     if len(derivative) == 0:
         return [0]
     return derivative

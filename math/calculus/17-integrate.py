@@ -8,18 +8,18 @@ def poly_integral(poly, C=0):
         return None
     if type(C) not in [int, float]:
         return None
-        
+
     integral = [C]
     for i in range(len(poly)):
         if type(poly[i]) not in [int, float]:
             return None
-        
+
         res = poly[i] / (i + 1)
         if res.is_integer():
             res = int(res)
         integral.append(res)
-             
+
     while len(integral) > 1 and integral[-1] == 0:
         integral.pop()
-        
+
     return integral
