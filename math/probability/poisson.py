@@ -35,12 +35,12 @@ class Poisson:
 
         lambtha = self.lambtha
         e = 2.7182818285
-        
+
         # Factorial of k
         factorial = 1
         for i in range(1, k + 1):
             factorial *= i
-            
+
         pmf_value = (pow(lambtha, k) * pow(e, -lambtha)) / factorial
         return pmf_value
 
@@ -52,9 +52,9 @@ class Poisson:
             k = int(k)
         if k < 0:
             return 0
-            
+
         cdf_value = 0
         for i in range(k + 1):
             cdf_value += self.pmf(i)
-            
+
         return cdf_value
