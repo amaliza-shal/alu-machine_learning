@@ -9,11 +9,11 @@ class NeuralNetwork:
     def __init__(self, nx, nodes):
         """
         Initialize the neural network
-        
+
         Args:
             nx: Number of input features
             nodes: Number of nodes in the hidden layer
-            
+
         Raises:
             TypeError: If nx or nodes is not an integer
             ValueError: If nx or nodes is less than 1
@@ -26,7 +26,7 @@ class NeuralNetwork:
             raise TypeError("nodes must be an integer")
         if nodes < 1:
             raise ValueError("nodes must be a positive integer")
-        
+
         self.__W1 = np.random.normal(0, 1, (nodes, nx))
         self.__b1 = np.zeros((nodes, 1))
         self.__A1 = 0
@@ -67,29 +67,29 @@ class NeuralNetwork:
     def forward_prop(self, X):
         """
         Calculates the forward propagation of the neural network
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
-            
+
         Returns:
             The private attributes __A1 and __A2
         """
         Z1 = np.matmul(self.__W1, X) + self.__b1
         self.__A1 = 1 / (1 + np.exp(-Z1))
-        
+
         Z2 = np.matmul(self.__W2, self.__A1) + self.__b2
         self.__A2 = 1 / (1 + np.exp(-Z2))
-        
+
         return self.__A1, self.__A2
 
     def cost(self, Y, A):
         """
         Calculates the cost of the model using logistic regression
-        
+
         Args:
             Y: numpy.ndarray with shape (1, m) containing correct labels
             A: numpy.ndarray with shape (1, m) containing activated output
-            
+
         Returns:
             The cost
         """

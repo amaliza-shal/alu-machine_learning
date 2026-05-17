@@ -9,11 +9,11 @@ class DeepNeuralNetwork:
     def __init__(self, nx, layers):
         """
         Initialize the deep neural network
-        
+
         Args:
             nx: Number of input features
             layers: List representing the number of nodes in each layer
-            
+
         Raises:
             TypeError: If nx is not an integer or layers is not a list
             ValueError: If nx is less than 1 or layers is empty or contains non-positive integers
@@ -26,15 +26,15 @@ class DeepNeuralNetwork:
             raise TypeError("layers must be a list of positive integers")
         if len(layers) == 0:
             raise TypeError("layers must be a list of positive integers")
-        
+
         for node in layers:
             if not isinstance(node, int) or node < 1:
                 raise TypeError("layers must be a list of positive integers")
-        
+
         self.__L = len(layers)
         self.__cache = {}
         self.__weights = {}
-        
+
         # Initialize weights using He initialization
         prev_nodes = nx
         for i in range(1, self.__L + 1):

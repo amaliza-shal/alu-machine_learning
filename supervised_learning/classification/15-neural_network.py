@@ -10,11 +10,11 @@ class NeuralNetwork:
     def __init__(self, nx, nodes):
         """
         Initialize the neural network
-        
+
         Args:
             nx: Number of input features
             nodes: Number of nodes in the hidden layer
-            
+
         Raises:
             TypeError: If nx or nodes is not an integer
             ValueError: If nx or nodes is less than 1
@@ -27,7 +27,7 @@ class NeuralNetwork:
             raise TypeError("nodes must be an integer")
         if nodes < 1:
             raise ValueError("nodes must be a positive integer")
-        
+
         self.__W1 = np.random.normal(0, 1, (nodes, nx))
         self.__b1 = np.zeros((nodes, 1))
         self.__A1 = 0
@@ -68,29 +68,29 @@ class NeuralNetwork:
     def forward_prop(self, X):
         """
         Calculates the forward propagation of the neural network
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
-            
+
         Returns:
             The private attributes __A1 and __A2
         """
         Z1 = np.matmul(self.__W1, X) + self.__b1
         self.__A1 = 1 / (1 + np.exp(-Z1))
-        
+
         Z2 = np.matmul(self.__W2, self.__A1) + self.__b2
         self.__A2 = 1 / (1 + np.exp(-Z2))
-        
+
         return self.__A1, self.__A2
 
     def cost(self, Y, A):
         """
         Calculates the cost of the model using logistic regression
-        
+
         Args:
             Y: numpy.ndarray with shape (1, m) containing correct labels
             A: numpy.ndarray with shape (1, m) containing activated output
-            
+
         Returns:
             The cost
         """
@@ -101,11 +101,11 @@ class NeuralNetwork:
     def evaluate(self, X, Y):
         """
         Evaluates the neural network's predictions
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
             Y: numpy.ndarray with shape (1, m) containing correct labels
-            
+
         Returns:
             The neural network's prediction and the cost of the network
         """
@@ -117,7 +117,7 @@ class NeuralNetwork:
     def gradient_descent(self, X, Y, A1, A2, alpha=0.05):
         """
         Calculates one pass of gradient descent on the neural network
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
             Y: numpy.ndarray with shape (1, m) containing correct labels
@@ -126,17 +126,17 @@ class NeuralNetwork:
             alpha: The learning rate
         """
         m = Y.shape[1]
-        
+
         # Backpropagation
         dZ2 = A2 - Y
         dW2 = np.matmul(dZ2, A1.T) / m
         db2 = np.sum(dZ2) / m
-        
+
         dA1 = np.matmul(self.__W2.T, dZ2)
         dZ1 = dA1 * A1 * (1 - A1)
         dW1 = np.matmul(dZ1, X.T) / m
         db1 = np.sum(dZ1, axis=1, keepdims=True) / m
-        
+
         # Update parameters
         self.__W1 = self.__W1 - alpha * dW1
         self.__b1 = self.__b1 - alpha * db1
@@ -146,7 +146,7 @@ class NeuralNetwork:
     def train(self, X, Y, iterations=5000, alpha=0.05, verbose=True, graph=True, step=100):
         """
         Trains the neural network
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
             Y: numpy.ndarray with shape (1, m) containing correct labels
@@ -155,7 +155,7 @@ class NeuralNetwork:
             verbose: Boolean to print information about training
             graph: Boolean to graph information about training
             step: Number of iterations between prints/graphs
-            
+
         Returns:
             The evaluation of the training data after iterations
         """
@@ -167,29 +167,29 @@ class NeuralNetwork:
             raise TypeError("alpha must be a float")
         if alpha <= 0:
             raise ValueError("alpha must be positive")
-        
+
         if verbose or graph:
             if not isinstance(step, int):
                 raise TypeError("step must be an integer")
             if step <= 0 or step > iterations:
                 raise ValueError("step must be positive and <= iterations")
-        
+
         costs = []
         iterations_list = []
-        
+
         for i in range(iterations + 1):
             self.forward_prop(X)
             cost = self.cost(Y, self.__A2)
-            
+
             if i % step == 0:
                 costs.append(cost)
                 iterations_list.append(i)
                 if verbose:
                     print(f"Cost after {i} iterations: {cost}")
-            
+
             if i < iterations:
                 self.gradient_descent(X, Y, self.__A1, self.__A2, alpha)
-        
+
         if graph:
             plt.figure()
             plt.plot(iterations_list, costs, 'b')
@@ -197,5 +197,5 @@ class NeuralNetwork:
             plt.ylabel('cost')
             plt.title('Training Cost')
             plt.show()
-        
+
         return self.evaluate(X, Y)

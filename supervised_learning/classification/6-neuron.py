@@ -9,10 +9,10 @@ class Neuron:
     def __init__(self, nx):
         """
         Initialize the neuron
-        
+
         Args:
             nx: Number of input features to the neuron
-            
+
         Raises:
             TypeError: If nx is not an integer
             ValueError: If nx is less than 1
@@ -21,7 +21,7 @@ class Neuron:
             raise TypeError("nx must be a integer")
         if nx < 1:
             raise ValueError("nx must be positive")
-        
+
         self.__W = np.random.normal(0, 1, (1, nx))
         self.__b = 0
         self.__A = 0
@@ -44,10 +44,10 @@ class Neuron:
     def forward_prop(self, X):
         """
         Calculates the forward propagation of the neuron
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
-            
+
         Returns:
             The private attribute __A
         """
@@ -58,11 +58,11 @@ class Neuron:
     def cost(self, Y, A):
         """
         Calculates the cost of the model using logistic regression
-        
+
         Args:
             Y: numpy.ndarray with shape (1, m) containing correct labels
             A: numpy.ndarray with shape (1, m) containing activated output
-            
+
         Returns:
             The cost
         """
@@ -73,11 +73,11 @@ class Neuron:
     def evaluate(self, X, Y):
         """
         Evaluates the neuron's predictions
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
             Y: numpy.ndarray with shape (1, m) containing correct labels
-            
+
         Returns:
             The neuron's prediction and the cost of the network
         """
@@ -89,7 +89,7 @@ class Neuron:
     def gradient_descent(self, X, Y, A, alpha=0.05):
         """
         Calculates one pass of gradient descent on the neuron
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
             Y: numpy.ndarray with shape (1, m) containing correct labels
@@ -100,20 +100,20 @@ class Neuron:
         dZ = A - Y
         dW = np.matmul(dZ, X.T) / m
         db = np.sum(dZ) / m
-        
+
         self.__W = self.__W - alpha * dW
         self.__b = self.__b - alpha * db
 
     def train(self, X, Y, iterations=5000, alpha=0.05):
         """
         Trains the neuron
-        
+
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
             Y: numpy.ndarray with shape (1, m) containing correct labels
             iterations: The number of iterations to train over
             alpha: The learning rate
-            
+
         Returns:
             The evaluation of the training data after iterations
         """
@@ -125,9 +125,9 @@ class Neuron:
             raise TypeError("alpha must be a float")
         if alpha <= 0:
             raise ValueError("alpha must be positive")
-        
+
         for _ in range(iterations):
             self.forward_prop(X)
             self.gradient_descent(X, Y, self.__A, alpha)
-        
+
         return self.evaluate(X, Y)
