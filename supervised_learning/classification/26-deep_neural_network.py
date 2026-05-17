@@ -43,9 +43,9 @@ class DeepNeuralNetwork:
         for i in range(1, self.__L + 1):
             nodes = layers[i - 1]
             He_factor = np.sqrt(2.0 / prev_nodes)
-            self.__weights[f'W{i}'] = np.random.normal(
+            self.__weights['W{}'.format(i)] = np.random.normal(
                 0, He_factor, (nodes, prev_nodes))
-            self.__weights[f'b{i}'] = np.zeros((nodes, 1))
+            self.__weights['b{}'.format(i)] = np.zeros((nodes, 1))
             prev_nodes = nodes
 
     @property
@@ -77,9 +77,9 @@ class DeepNeuralNetwork:
         A = X
 
         for i in range(1, self.__L + 1):
-            Z = np.matmul(self.__weights[f'W{i}'], A) + self.__weights[f'b{i}']
+            Z = np.matmul(self.__weights['W{}'.format(i)], A) + self.__weights['b{}'.format(i)]
             A = 1 / (1 + np.exp(-Z))
-            self.__cache[f'A{i}'] = A
+            self.__cache['A{}'.format(i)] = A
 
         return A, self.__cache
 
@@ -126,18 +126,18 @@ class DeepNeuralNetwork:
         m = Y.shape[1]
 
         # Backpropagation
-        dZ = cache[f'A{self.__L}'] - Y
+        dZ = cache['A{}'.format(self.__L)] - Y
 
         for i in range(self.__L, 0, -1):
-            dW = np.matmul(dZ, cache[f'A{i-1}'].T) / m
+            dW = np.matmul(dZ, cache['A{}'.format(i-1)].T) / m
             db = np.sum(dZ, axis=1, keepdims=True) / m
 
             if i > 1:
-                dA = np.matmul(self.__weights[f'W{i}'].T, dZ)
-                dZ = dA * cache[f'A{i-1}'] * (1 - cache[f'A{i-1}'])
+                dA = np.matmul(self.__weights['W{}'.format(i)].T, dZ)
+                dZ = dA * cache['A{}'.format(i-1)] * (1 - cache['A{}'.format(i-1)])
 
-            self.__weights[f'W{i}'] = self.__weights[f'W{i}'] - alpha * dW
-            self.__weights[f'b{i}'] = self.__weights[f'b{i}'] - alpha * db
+            self.__weights['W{}'.format(i)] = self.__weights['W{}'.format(i)] - alpha * dW
+            self.__weights['b{}'.format(i)] = self.__weights['b{}'.format(i)] - alpha * db
 
     def train(self, X, Y, iterations=5000, alpha=0.05,
               verbose=True, graph=True, step=100):
@@ -182,7 +182,7 @@ class DeepNeuralNetwork:
                 costs.append(cost)
                 iterations_list.append(i)
                 if verbose:
-                    print(f"Cost after {i} iterations: {cost}")
+                    print("Cost after {} iterations: {}".format(i, cost))
 
             if i < iterations:
                 self.gradient_descent(Y, cache, alpha)
