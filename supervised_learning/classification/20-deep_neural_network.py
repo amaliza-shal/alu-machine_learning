@@ -72,14 +72,29 @@ class DeepNeuralNetwork:
             The output of the neural network and the cache
         """
         self.__cache['A0'] = X
-        A = X
-
-        for i in range(1, self.__L + 1):
-            Z = np.matmul(self.__weights[f'W{i}'], A) + self.__weights[f'b{i}']
-            A = 1 / (1 + np.exp(-Z))
-            self.__cache[f'A{i}'] = A
-
+        A = self._forward_layer(X, 1)
         return A, self.__cache
+
+    def _forward_layer(self, A_prev, layer):
+        """
+        Recursively computes forward propagation through layers
+
+        Args:
+            A_prev: Output from previous layer
+            layer: Current layer number
+
+        Returns:
+            The output of the neural network
+        """
+        Z = np.matmul(self.__weights[f'W{layer}'], A_prev) + \
+            self.__weights[f'b{layer}']
+        A = 1 / (1 + np.exp(-Z))
+        self.__cache[f'A{layer}'] = A
+
+        if layer == self.__L:
+            return A
+        else:
+            return self._forward_layer(A, layer + 1)
 
     def cost(self, Y, A):
         """

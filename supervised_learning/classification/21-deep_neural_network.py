@@ -122,17 +122,28 @@ class DeepNeuralNetwork:
             alpha: The learning rate
         """
         m = Y.shape[1]
-
-        # Backpropagation
         dZ = cache[f'A{self.__L}'] - Y
+        self._backward_layer(Y, cache, dZ, m, alpha, self.__L)
 
-        for i in range(self.__L, 0, -1):
-            dW = np.matmul(dZ, cache[f'A{i-1}'].T) / m
-            db = np.sum(dZ, axis=1, keepdims=True) / m
+    def _backward_layer(self, Y, cache, dZ, m, alpha, layer):
+        """
+        Recursively computes backpropagation through layers
 
-            if i > 1:
-                dA = np.matmul(self.__weights[f'W{i}'].T, dZ)
-                dZ = dA * cache[f'A{i-1}'] * (1 - cache[f'A{i-1}'])
+        Args:
+            Y: numpy.ndarray with shape (1, m) containing correct labels
+            cache: Dictionary containing all intermediary values
+            dZ: Gradient of Z
+            m: Number of examples
+            alpha: The learning rate
+            layer: Current layer number
+        """
+        dW = np.matmul(dZ, cache[f'A{layer-1}'].T) / m
+        db = np.sum(dZ, axis=1, keepdims=True) / m
 
-            self.__weights[f'W{i}'] = self.__weights[f'W{i}'] - alpha * dW
-            self.__weights[f'b{i}'] = self.__weights[f'b{i}'] - alpha * db
+        self.__weights[f'W{layer}'] = self.__weights[f'W{layer}'] - alpha * dW
+        self.__weights[f'b{layer}'] = self.__weights[f'b{layer}'] - alpha * db
+
+        if layer > 1:
+            dA = np.matmul(self.__weights[f'W{layer}'].T, dZ)
+            dZ = dA * cache[f'A{layer-1}'] * (1 - cache[f'A{layer-1}'])
+            self._backward_layer(Y, cache, dZ, m, alpha, layer - 1)
