@@ -60,3 +60,37 @@ class DeepNeuralNetwork:
     def weights(self):
         """Get the weights"""
         return self.__weights
+
+    def forward_prop(self, X):
+        """
+        Calculates the forward propagation of the neural network
+
+        Args:
+            X: numpy.ndarray with shape (nx, m) containing the input data
+
+        Returns:
+            The output of the neural network and the cache
+        """
+        self.__cache['A0'] = X
+        return self._forward_layer(X, 1)
+
+    def _forward_layer(self, A_prev, layer):
+        """
+        Recursively computes forward propagation through layers
+
+        Args:
+            A_prev: Output from previous layer
+            layer: Current layer number
+
+        Returns:
+            The output of the neural network
+        """
+        Z = np.matmul(self.__weights[f'W{layer}'], A_prev) + \
+            self.__weights[f'b{layer}']
+        A = 1 / (1 + np.exp(-Z))
+        self.__cache[f'A{layer}'] = A
+
+        if layer == self.__L:
+            return A
+        else:
+            return self._forward_layer(A, layer + 1)
