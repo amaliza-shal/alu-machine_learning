@@ -41,9 +41,9 @@ class DeepNeuralNetwork:
         for i in range(1, self.__L + 1):
             nodes = layers[i - 1]
             He_factor = np.sqrt(2.0 / prev_nodes)
-            self.__weights[f'W{i}'] = np.random.normal(
+            self.__weights['W{}'.format(i)] = np.random.normal(
                 0, He_factor, (nodes, prev_nodes))
-            self.__weights[f'b{i}'] = np.zeros((nodes, 1))
+            self.__weights['b{}'.format(i)] = np.zeros((nodes, 1))
             prev_nodes = nodes
 
     @property

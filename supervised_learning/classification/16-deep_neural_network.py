@@ -40,9 +40,9 @@ class DeepNeuralNetwork:
         for i in range(1, self.L + 1):
             nodes = layers[i - 1]
             He_factor = np.sqrt(2.0 / prev_nodes)
-            self.weights[f'W{i}'] = np.random.normal(
+            self.weights['W{}'.format(i)] = np.random.normal(
                 0, He_factor, (nodes, prev_nodes))
-            self.weights[f'b{i}'] = np.zeros((nodes, 1))
+            self.weights['b{}'.format(i)] = np.zeros((nodes, 1))
             prev_nodes = nodes
 
     def forward_prop(self, X):
@@ -69,9 +69,9 @@ class DeepNeuralNetwork:
         Returns:
             The output of the neural network
         """
-        Z = np.matmul(self.weights[f'W{layer}'], A_prev) + self.weights[f'b{layer}']
+        Z = np.matmul(self.weights['W{}'.format(layer)], A_prev) + self.weights['b{}'.format(layer)]
         A = 1 / (1 + np.exp(-Z))
-        self.cache[f'A{layer}'] = A
+        self.cache['A{}'.format(layer)] = A
 
         if layer == self.L:
             return A
