@@ -43,3 +43,36 @@ class DeepNeuralNetwork:
                 0, He_factor, (nodes, prev_nodes))
             self.weights[f'b{i}'] = np.zeros((nodes, 1))
             prev_nodes = nodes
+
+    def forward_prop(self, X):
+        """
+        Calculates the forward propagation of the deep neural network
+
+        Args:
+            X: numpy.ndarray with shape (nx, m) containing the input data
+
+        Returns:
+            The output of the neural network and the cache
+        """
+        self.cache['A0'] = X
+        return self._forward_layer(X, 1)
+
+    def _forward_layer(self, A_prev, layer):
+        """
+        Recursively computes forward propagation through layers
+
+        Args:
+            A_prev: Output from previous layer
+            layer: Current layer number
+
+        Returns:
+            The output of the neural network
+        """
+        Z = np.matmul(self.weights[f'W{layer}'], A_prev) + self.weights[f'b{layer}']
+        A = 1 / (1 + np.exp(-Z))
+        self.cache[f'A{layer}'] = A
+
+        if layer == self.L:
+            return A
+        else:
+            return self._forward_layer(A, layer + 1)
