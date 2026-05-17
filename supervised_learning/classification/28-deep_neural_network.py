@@ -103,7 +103,7 @@ class DeepNeuralNetwork:
         A = X
 
         for i in range(1, self.__L + 1):
-            Z = np.matmul(self.__weights[f'W{i}'], A) + self.__weights[f'b{i}']
+            Z = np.matmul(self.__weights['W{}'.format(i)], A) + self.__weights['b{}'.format(i)]
 
             # Use specified activation for hidden layers, sigmoid for output
             if i == self.__L:
@@ -114,7 +114,7 @@ class DeepNeuralNetwork:
                 else:  # tanh
                     A = self._tanh(Z)
 
-            self.__cache[f'A{i}'] = A
+            self.__cache['A{}'.format(i)] = A
 
         return A, self.__cache
 
@@ -163,22 +163,22 @@ class DeepNeuralNetwork:
         m = Y.shape[1]
 
         # Backpropagation
-        dZ = cache[f'A{self.__L}'] - Y
+        dZ = cache['A{}'.format(self.__L)] - Y
 
         for i in range(self.__L, 0, -1):
-            dW = np.matmul(dZ, cache[f'A{i-1}'].T) / m
+            dW = np.matmul(dZ, cache['A{}'.format(i-1)].T) / m
             db = np.sum(dZ, axis=1, keepdims=True) / m
 
             if i > 1:
-                dA = np.matmul(self.__weights[f'W{i}'].T, dZ)
+                dA = np.matmul(self.__weights['W{}'.format(i)].T, dZ)
                 # Use specified activation derivative for hidden layers
                 if self.__activation == 'sig':
-                    dZ = dA * self._sigmoid_derivative(cache[f'A{i-1}'])
+                    dZ = dA * self._sigmoid_derivative(cache['A{}'.format(i-1)])
                 else:  # tanh
-                    dZ = dA * self._tanh_derivative(cache[f'A{i-1}'])
+                    dZ = dA * self._tanh_derivative(cache['A{}'.format(i-1)])
 
-            self.__weights[f'W{i}'] = self.__weights[f'W{i}'] - alpha * dW
-            self.__weights[f'b{i}'] = self.__weights[f'b{i}'] - alpha * db
+            self.__weights['W{}'.format(i)] = self.__weights['W{}'.format(i)] - alpha * dW
+            self.__weights['b{}'.format(i)] = self.__weights['b{}'.format(i)] - alpha * db
 
     def train(self, X, Y, iterations=5000, alpha=0.05,
               verbose=True, graph=True, step=100):

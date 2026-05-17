@@ -187,8 +187,7 @@ class NeuralNetwork:
                 costs.append(cost)
                 iterations_list.append(i)
                 if verbose:
-                    print(f"Cost after {i} iterations: {cost}")
-
+                    print("Cost after {} iterations: {}".format(i, cost))
             if i < iterations:
                 self.gradient_descent(X, Y, self.__A1, self.__A2, alpha)
 

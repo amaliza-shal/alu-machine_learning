@@ -86,10 +86,10 @@ class DeepNeuralNetwork:
         Returns:
             The output of the neural network
         """
-        Z = np.matmul(self.__weights[f'W{layer}'], A_prev) + \
-            self.__weights[f'b{layer}']
+        Z = np.matmul(self.__weights['W{}'.format(layer)], A_prev) + \
+            self.__weights['b{}'.format(layer)]
         A = 1 / (1 + np.exp(-Z))
-        self.__cache[f'A{layer}'] = A
+        self.__cache['A{}'.format(layer)] = A
 
         if layer == self.__L:
             return A

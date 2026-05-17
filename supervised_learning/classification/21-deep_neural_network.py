@@ -75,9 +75,9 @@ class DeepNeuralNetwork:
         A = X
 
         for i in range(1, self.__L + 1):
-            Z = np.matmul(self.__weights[f'W{i}'], A) + self.__weights[f'b{i}']
+            Z = np.matmul(self.__weights['W{}'.format(i)], A) + self.__weights['b{}'.format(i)]
             A = 1 / (1 + np.exp(-Z))
-            self.__cache[f'A{i}'] = A
+            self.__cache['A{}'.format(i)] = A
 
         return A, self.__cache
 
@@ -122,7 +122,7 @@ class DeepNeuralNetwork:
             alpha: The learning rate
         """
         m = Y.shape[1]
-        dZ = cache[f'A{self.__L}'] - Y
+        dZ = cache['A{}'.format(self.__L)] - Y
         self._backward_layer(Y, cache, dZ, m, alpha, self.__L)
 
     def _backward_layer(self, Y, cache, dZ, m, alpha, layer):
@@ -137,13 +137,13 @@ class DeepNeuralNetwork:
             alpha: The learning rate
             layer: Current layer number
         """
-        dW = np.matmul(dZ, cache[f'A{layer-1}'].T) / m
+        dW = np.matmul(dZ, cache['A{}'.format(layer-1)].T) / m
         db = np.sum(dZ, axis=1, keepdims=True) / m
 
-        self.__weights[f'W{layer}'] = self.__weights[f'W{layer}'] - alpha * dW
-        self.__weights[f'b{layer}'] = self.__weights[f'b{layer}'] - alpha * db
+        self.__weights['W{}'.format(layer)] = self.__weights['W{}'.format(layer)] - alpha * dW
+        self.__weights['b{}'.format(layer)] = self.__weights['b{}'.format(layer)] - alpha * db
 
         if layer > 1:
-            dA = np.matmul(self.__weights[f'W{layer}'].T, dZ)
-            dZ = dA * cache[f'A{layer-1}'] * (1 - cache[f'A{layer-1}'])
+            dA = np.matmul(self.__weights['W{}'.format(layer)].T, dZ)
+            dZ = dA * cache['A{}'.format(layer-1)] * (1 - cache['A{}'.format(layer-1)])
             self._backward_layer(Y, cache, dZ, m, alpha, layer - 1)
