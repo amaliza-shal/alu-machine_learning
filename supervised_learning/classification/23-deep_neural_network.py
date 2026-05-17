@@ -17,7 +17,8 @@ class DeepNeuralNetwork:
 
         Raises:
             TypeError: If nx is not an integer or layers is not a list
-            ValueError: If nx is less than 1 or layers is empty or contains non-positive integers
+            ValueError: If nx is less than 1 or layers is empty or
+                contains non-positive integers
         """
         if not isinstance(nx, int):
             raise TypeError("nx must be an integer")
@@ -40,7 +41,9 @@ class DeepNeuralNetwork:
         prev_nodes = nx
         for i in range(1, self.__L + 1):
             nodes = layers[i - 1]
-            self.__weights[f'W{i}'] = np.random.normal(0, np.sqrt(2.0 / prev_nodes), (nodes, prev_nodes))
+            He_factor = np.sqrt(2.0 / prev_nodes)
+            self.__weights[f'W{i}'] = np.random.normal(
+                0, He_factor, (nodes, prev_nodes))
             self.__weights[f'b{i}'] = np.zeros((nodes, 1))
             prev_nodes = nodes
 
@@ -135,7 +138,8 @@ class DeepNeuralNetwork:
             self.__weights[f'W{i}'] = self.__weights[f'W{i}'] - alpha * dW
             self.__weights[f'b{i}'] = self.__weights[f'b{i}'] - alpha * db
 
-    def train(self, X, Y, iterations=5000, alpha=0.05, verbose=True, graph=True, step=100):
+    def train(self, X, Y, iterations=5000, alpha=0.05,
+              verbose=True, graph=True, step=100):
         """
         Trains the deep neural network
 

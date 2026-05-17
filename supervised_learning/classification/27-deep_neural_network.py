@@ -18,7 +18,8 @@ class DeepNeuralNetwork:
 
         Raises:
             TypeError: If nx is not an integer or layers is not a list
-            ValueError: If nx is less than 1 or layers is empty or contains non-positive integers
+            ValueError: If nx is less than 1 or layers is empty or
+                contains non-positive integers
         """
         if not isinstance(nx, int):
             raise TypeError("nx must be an integer")
@@ -41,7 +42,9 @@ class DeepNeuralNetwork:
         prev_nodes = nx
         for i in range(1, self.__L + 1):
             nodes = layers[i - 1]
-            self.__weights[f'W{i}'] = np.random.normal(0, np.sqrt(2.0 / prev_nodes), (nodes, prev_nodes))
+            He_factor = np.sqrt(2.0 / prev_nodes)
+            self.__weights[f'W{i}'] = np.random.normal(
+                0, He_factor, (nodes, prev_nodes))
             self.__weights[f'b{i}'] = np.zeros((nodes, 1))
             prev_nodes = nodes
 
@@ -85,8 +88,8 @@ class DeepNeuralNetwork:
         Calculates the cost of the model using logistic regression
 
         Args:
-            Y: numpy.ndarray with shape (classes, m) containing correct labels (one-hot)
-            A: numpy.ndarray with shape (classes, m) containing activated output
+            Y: numpy.ndarray with shape (classes, m) containing labels
+            A: numpy.ndarray with shape (classes, m) containing output
 
         Returns:
             The cost
@@ -101,7 +104,7 @@ class DeepNeuralNetwork:
 
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
-            Y: numpy.ndarray with shape (classes, m) containing correct labels (one-hot)
+            Y: numpy.ndarray with shape (classes, m) containing labels
 
         Returns:
             The neural network's prediction and the cost of the network
@@ -118,8 +121,8 @@ class DeepNeuralNetwork:
         Calculates one pass of gradient descent on the neural network
 
         Args:
-            Y: numpy.ndarray with shape (classes, m) containing correct labels (one-hot)
-            cache: Dictionary containing all intermediary values of the network
+            Y: numpy.ndarray with shape (classes, m) containing labels
+            cache: Dictionary containing all intermediary values
             alpha: The learning rate
         """
         m = Y.shape[1]
@@ -138,14 +141,14 @@ class DeepNeuralNetwork:
             self.__weights[f'W{i}'] = self.__weights[f'W{i}'] - alpha * dW
             self.__weights[f'b{i}'] = self.__weights[f'b{i}'] - alpha * db
 
-    def train(self, X, Y, iterations=5000, alpha=0.05, verbose=True, graph=True, step=100):
+    def train(self, X, Y, iterations=5000, alpha=0.05,
+              verbose=True, graph=True, step=100):
         """
         Trains the deep neural network
 
         Args:
             X: numpy.ndarray with shape (nx, m) containing the input data
-            Y: numpy.ndarray with shape (classes, m) containing correct labels (one-hot)
-            iterations: The number of iterations to train over
+            Y: numpy.ndarray with shape (classes, m) one-hot labels
             alpha: The learning rate
             verbose: Boolean to print information about training
             graph: Boolean to graph information about training
