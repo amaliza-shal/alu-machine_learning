@@ -2,7 +2,8 @@
 """
 Mini-Batch
 """
-import numpy as np
+import tensorflow as tf
+shuffle_data = __import__('2-shuffle_data').shuffle_data
 
 
 def train_mini_batch(X_train, Y_train, X_valid, Y_valid, batch_size=32,
@@ -23,9 +24,6 @@ def train_mini_batch(X_train, Y_train, X_valid, Y_valid, batch_size=32,
     save_path is the path to where the model should be saved after training
     Returns: the path where the model was saved
     """
-    import tensorflow as tf
-    shuffle_data = __import__('2-shuffle_data').shuffle_data
-
     with tf.Session() as sess:
         saver = tf.train.import_meta_graph(load_path + '.meta')
         saver.restore(sess, load_path)
@@ -37,6 +35,7 @@ def train_mini_batch(X_train, Y_train, X_valid, Y_valid, batch_size=32,
         train_op = tf.get_collection('train_op')[0]
 
         m = X_train.shape[0]
+
         for i in range(epochs + 1):
             train_cost, train_accuracy = sess.run(
                 [loss, accuracy],
@@ -54,17 +53,26 @@ def train_mini_batch(X_train, Y_train, X_valid, Y_valid, batch_size=32,
             print("\tValidation Accuracy: {}".format(valid_accuracy))
 
             if i < epochs:
+                # Shuffle before each epoch
                 X_shuffled, Y_shuffled = shuffle_data(X_train, Y_train)
+                # Iterate through batches
+                count = 0
                 for j in range(0, m, batch_size):
-                    X_batch = X_shuffled[j:j+batch_size]
-                    Y_batch = Y_shuffled[j:j+batch_size]
+                    count += 1
+                    end = j + batch_size
+                    if end > m:
+                        end = m
+                    X_batch = X_shuffled[j:end]
+                    Y_batch = Y_shuffled[j:end]
+
                     sess.run(train_op, feed_dict={x: X_batch, y: Y_batch})
-                    if (j // batch_size + 1) % 100 == 0:
+
+                    if count > 0 and count % 100 == 0:
                         step_cost, step_accuracy = sess.run(
                             [loss, accuracy],
                             feed_dict={x: X_batch, y: Y_batch}
                         )
-                        print("\tStep {}:".format(j // batch_size + 1))
+                        print("\tStep {}:".format(count))
                         print("\t\tCost: {}".format(step_cost))
                         print("\t\tAccuracy: {}".format(step_accuracy))
 

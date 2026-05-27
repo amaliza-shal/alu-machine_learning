@@ -2,17 +2,22 @@
 """
 Batch Normalization
 """
-import tensorflow as tf
+import numpy as np
 
 
 def batch_norm(Z, gamma, beta, epsilon):
     """
-    creates a batch normalization layer for a neural network in tensorflow:
-    Z is the variable to be normalized
-    gamma is a tensor containing the scaling factors for batch normalization
-    beta is a tensor containing the offsets for batch normalization
+    calculates the batch normalization of a tensor in numpy:
+    Z is a numpy.ndarray of shape (m, n) to be normalized
+    gamma is a numpy.ndarray of shape (1, n) containing the scaling factors
+        for batch normalization
+    beta is a numpy.ndarray of shape (1, n) containing the offsets for
+        batch normalization
     epsilon is a small number used to avoid division by zero
-    Returns: a tensor of the normalized Z
+    Returns: the normalized Z
     """
-    m, s = tf.nn.moments(Z, axes=[0])
-    return tf.nn.batch_normalization(Z, m, s, beta, gamma, epsilon)
+    mean = np.mean(Z, axis=0)
+    variance = np.var(Z, axis=0)
+    Z_norm = (Z - mean) / np.sqrt(variance + epsilon)
+    out = gamma * Z_norm + beta
+    return out
