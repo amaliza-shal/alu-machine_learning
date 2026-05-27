@@ -47,8 +47,8 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     auto = keras.Model(encoder_inputs, auto_outputs)
 
     def vae_loss(y_true, y_pred):
-        recon_loss = keras.backend.sum(
-            keras.losses.binary_crossentropy(y_true, y_pred), axis=-1)
+        recon_loss = keras.backend.binary_crossentropy(y_true, y_pred)
+        recon_loss = keras.backend.sum(recon_loss, axis=-1)
         kl_loss = -0.5 * keras.backend.sum(
             1 + z_log_var - keras.backend.square(z_mean) -
             keras.backend.exp(z_log_var), axis=-1)
