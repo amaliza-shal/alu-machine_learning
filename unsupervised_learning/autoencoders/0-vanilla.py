@@ -8,10 +8,6 @@ import tensorflow.keras as keras
 def autoencoder(input_dims, hidden_layers, latent_dims):
     """
     Creates an autoencoder
-    input_dims: dimensions of the model input
-    hidden_layers: list containing the number of nodes for each hidden layer
-    latent_dims: dimensions of the latent space representation
-    Returns: encoder, decoder, auto
     """
     # Encoder
     encoder_input = keras.Input(shape=(input_dims,))

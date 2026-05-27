@@ -8,11 +8,6 @@ import tensorflow.keras as keras
 def autoencoder(input_dims, hidden_layers, latent_dims, lambtha):
     """
     Creates a sparse autoencoder
-    input_dims: dimensions of the model input
-    hidden_layers: list containing the number of nodes for each hidden layer
-    latent_dims: dimensions of the latent space representation
-    lambtha: regularization parameter for L1 regularization
-    Returns: encoder, decoder, auto
     """
     # L1 regularization for the encoded output
     regularizer = keras.regularizers.l1(lambtha)
