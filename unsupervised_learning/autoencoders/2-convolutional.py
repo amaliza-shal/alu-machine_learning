@@ -31,9 +31,9 @@ def autoencoder(input_dims, filters, latent_dims):
     # 1. Standard Conv + Upsampling for filters[:-1]
     # 2. Second to last: Valid padding
     # 3. Last: sigmoid + no upsampling
-    
+
     rev_filters = filters[::-1]
-    
+
     # Each convolution in the decoder, except for the last two
     for i in range(len(rev_filters) - 1):
         x = keras.layers.Conv2D(
@@ -41,7 +41,7 @@ def autoencoder(input_dims, filters, latent_dims):
             padding='same', activation='relu'
         )(x)
         x = keras.layers.UpSampling2D(size=(2, 2))(x)
-        
+
     # The second to last convolution should instead use valid padding
     x = keras.layers.Conv2D(
         filters=rev_filters[-1], kernel_size=(3, 3),
@@ -55,7 +55,7 @@ def autoencoder(input_dims, filters, latent_dims):
         filters=input_dims[-1], kernel_size=(3, 3),
         padding='same', activation='sigmoid'
     )(x)
-    
+
     decoder = keras.Model(decoder_input, x)
 
     # Autoencoder
