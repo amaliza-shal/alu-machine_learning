@@ -1,24 +1,18 @@
 #!/usr/bin/env python3
-"""DeepNeuralNetwork class for binary classification"""
+"""
+    A class DeepNeuralNetwork that defines a deep neural
+    network performing binary classification
+"""
+
 import numpy as np
 
 
 class DeepNeuralNetwork:
-    """Defines a deep neural network performing binary classification"""
+    """
+    A class DeepNeuralNetwork
+    """
 
     def __init__(self, nx, layers):
-        """
-        Initialize the deep neural network
-
-        Args:
-            nx: Number of input features
-            layers: List representing the number of nodes in each layer
-
-        Raises:
-            TypeError: If nx is not an integer or layers is not a list
-            ValueError: If nx is less than 1 or layers is empty or
-                contains non-positive integers
-        """
         if not isinstance(nx, int):
             raise TypeError("nx must be an integer")
         if nx < 1:
@@ -26,54 +20,21 @@ class DeepNeuralNetwork:
         if not isinstance(layers, list) or len(layers) == 0:
             raise TypeError("layers must be a list of positive integers")
 
-        # Validate all nodes in layers without loops
-        valid = all(isinstance(node, int) and node >= 1 for node in layers)
-        if not valid:
-            raise TypeError("layers must be a list of positive integers")
-
         self.L = len(layers)
         self.cache = {}
         self.weights = {}
+        self.nx = nx
+        self.layers = layers
 
-        # Initialize weights using He initialization
-        prev_nodes = nx
-        for i in range(1, self.L + 1):
-            nodes = layers[i - 1]
-            He_factor = np.sqrt(2.0 / prev_nodes)
-            self.weights['W{}'.format(i)] = np.random.normal(
-                0, He_factor, (nodes, prev_nodes))
-            self.weights['b{}'.format(i)] = np.zeros((nodes, 1))
-            prev_nodes = nodes
-
-    def forward_prop(self, X):
-        """
-        Calculates the forward propagation of the deep neural network
-
-        Args:
-            X: numpy.ndarray with shape (nx, m) containing the input data
-
-        Returns:
-            The output of the neural network and the cache
-        """
-        self.cache['A0'] = X
-        return self._forward_layer(X, 1)
-
-    def _forward_layer(self, A_prev, layer):
-        """
-        Recursively computes forward propagation through layers
-
-        Args:
-            A_prev: Output from previous layer
-            layer: Current layer number
-
-        Returns:
-            The output of the neural network
-        """
-        Z = np.matmul(self.weights['W{}'.format(layer)], A_prev) + self.weights['b{}'.format(layer)]
-        A = 1 / (1 + np.exp(-Z))
-        self.cache['A{}'.format(layer)] = A
-
-        if layer == self.L:
-            return A
-        else:
-            return self._forward_layer(A, layer + 1)
+        # Initialize weights and biases and validate layers in one loop
+        for i in range(self.L):
+            if not isinstance(layers[i], int) or layers[i] < 1:
+                raise TypeError("layers must be a list of positive integers")
+            if i == 0:
+                self.weights["W1"] = (
+                    np.random.randn(layers[i], nx) * np.sqrt(2 / nx))
+            else:
+                self.weights["W" + str(i + 1)] = np.random.randn(
+                    layers[i], layers[i - 1]
+                ) * np.sqrt(2 / layers[i - 1])
+            self.weights["b" + str(i + 1)] = np.zeros((layers[i], 1))

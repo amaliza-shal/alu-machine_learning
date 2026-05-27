@@ -1,42 +1,47 @@
 #!/usr/bin/env python3
-"""Neuron class for binary classification with private attributes"""
+'''
+    A class Neuron that defines a single neuron performing
+    binary classification:
+'''
+
+
 import numpy as np
 
 
 class Neuron:
-    """Defines a single neuron performing binary classification"""
+    '''
+        Class Neuron
+    '''
 
     def __init__(self, nx):
-        """
-        Initialize the neuron
-
-        Args:
-            nx: Number of input features to the neuron
-
-        Raises:
-            TypeError: If nx is not an integer
-            ValueError: If nx is less than 1
-        """
-        if not isinstance(nx, int):
-            raise TypeError("nx must be a integer")
+        '''
+            Constructor
+        '''
+        if type(nx) is not int:
+            raise TypeError('nx must be an integer')
         if nx < 1:
-            raise ValueError("nx must be positive")
-
-        self.__W = np.random.normal(0, 1, (1, nx))
+            raise ValueError('nx must be a positive integer')
+        self.__W = np.random.randn(1, nx)
         self.__b = 0
         self.__A = 0
 
     @property
     def W(self):
-        """Get the weights"""
+        '''
+            Getter
+        '''
         return self.__W
 
     @property
     def b(self):
-        """Get the bias"""
+        '''
+            Getter
+        '''
         return self.__b
 
     @property
     def A(self):
-        """Get the activated output"""
+        '''
+            Getter
+        '''
         return self.__A
