@@ -37,7 +37,8 @@ class GaussianProcess:
         Returns:
             The covariance kernel matrix as a numpy.ndarray of shape (m, n)
         """
-        sqdist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * np.dot(X1, X2.T)
+        sqdist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - \
+            2 * np.dot(X1, X2.T)
         return self.sigma_f**2 * np.exp(-0.5 / self.l**2 * sqdist)
 
     def predict(self, X_s):
@@ -49,7 +50,8 @@ class GaussianProcess:
         Returns:
             mu, sigma
             mu: numpy.ndarray of shape (s,) containing the mean for each point
-            sigma: numpy.ndarray of shape (s,) containing the variance for each point
+            sigma: numpy.ndarray of shape (s,) containing the variance
+                   for each point
         """
         K_s = self.kernel(self.X, X_s)
         K_ss = self.kernel(X_s, X_s)
@@ -64,9 +66,12 @@ class GaussianProcess:
         """
         Updates a Gaussian Process
         Args:
-            X_new: numpy.ndarray of shape (1,) that represents the new sample point
-            Y_new: numpy.ndarray of shape (1,) that represents the new sample function value
+            X_new: numpy.ndarray of shape (1,) that represents the new
+                   sample point
+            Y_new: numpy.ndarray of shape (1,) that represents the new
+                   sample function value
         """
         self.X = np.append(self.X, X_new.reshape(-1, 1), axis=0)
         self.Y = np.append(self.Y, Y_new.reshape(-1, 1), axis=0)
         self.K = self.kernel(self.X, self.X)
+

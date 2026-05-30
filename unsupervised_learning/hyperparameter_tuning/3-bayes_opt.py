@@ -22,11 +22,13 @@ class BayesianOptimization:
             Y_init: numpy.ndarray of shape (t, 1) representing the outputs
                     for each input in X_init
             bounds: tuple of (min, max) representing the bounds of the space
-            ac_samples: number of samples that should be analyzed during acquisition
+            ac_samples: number of samples that should be analyzed during
+                        acquisition
             l: length parameter for the kernel
             sigma_f: standard deviation for the output
             xsi: exploration-exploitation factor for acquisition
-            minimize: bool determining whether to minimize (True) or maximize (False)
+            minimize: bool determining whether to minimize (True) or
+                      maximize (False)
         """
         self.f = f
         self.gp = GP(X_init, Y_init, l, sigma_f)
