@@ -10,10 +10,13 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+
 # Step 1: Load data
 data = load_breast_cancer()
 X, y = data.data, data.target
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=0)
+
 
 def optimize_xgb(params):
     """
@@ -21,7 +24,7 @@ def optimize_xgb(params):
     params: 2D array [learning_rate, n_estimators, max_depth, gamma, subsample]
     """
     params = params[0]
-    
+
     # Hyperparameters
     learning_rate = params[0]
     n_estimators = int(params[1])
@@ -41,21 +44,22 @@ def optimize_xgb(params):
     )
 
     # Early stopping (XGBoost 1.6+ syntax or eval_set)
-    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], 
+    model.fit(X_train, y_train, eval_set=[(X_test, y_test)],
               early_stopping_rounds=10, verbose=False)
-    
+
     y_pred = model.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
-    
+
     # Save checkpoint if it's a good approach
     checkpoint_name = "xgb_lr{}_nest{}_depth{}_gamma{}_sub{}.model".format(
         learning_rate, n_estimators, max_depth, gamma, subsample
     )
-    # Note: We usually only save the best, but the task says "during each training session"
+    # Note: We usually only save the best model
     model.save_model(checkpoint_name)
 
     # GPyOpt minimizes, so we return 1 - accuracy
     return 1 - acc
+
 
 # Step 2: Define bounds
 bounds = [

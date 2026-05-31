@@ -35,10 +35,10 @@ class BayesianOptimization:
 
         if self.minimize:
             mu_sample_opt = np.min(self.gp.Y)
-            imp = mu_sample_opt - mu - self.xsi
+            imp = (mu_sample_opt - mu - self.xsi)
         else:
             mu_sample_opt = np.max(self.gp.Y)
-            imp = mu - mu_sample_opt - self.xsi
+            imp = (mu - mu_sample_opt - self.xsi)
 
         with np.errstate(divide='warn'):
             Z = imp / sigma
