@@ -1,70 +1,95 @@
 #!/usr/bin/env python3
 """
-Bayesian Optimization Process
+Bayes Optimization
 """
 import numpy as np
 from scipy.stats import norm
 GP = __import__('2-gp').GaussianProcess
 
 
-class BayesianOptimization:
+class BayesianOptimization():
     """
-    Performs Bayesian optimization on a noiseless 1D Gaussian process
+    Bayes Optimization using Gaussian Process
     """
 
-    def __init__(self, f, X_init, Y_init, bounds, ac_samples, l=1,
-                 sigma_f=1, xsi=0.01, minimize=True):
+    def __init__(self, f, X_init, Y_init, bounds,
+                 ac_samples, l=1, sigma_f=1, xsi=0.01,
+                 minimize=True):
         """
-        Class constructor
+        * f is the black-box function to be optimized
         """
         self.f = f
         self.gp = GP(X_init, Y_init, l, sigma_f)
-        self.X_s = np.linspace(bounds[0], bounds[1], ac_samples).reshape(-1, 1)
+        min, max = bounds
+        X_s = np.linspace(min, max, ac_samples)
+        self.X_s = (np.sort(X_s)).reshape(-1, 1)
         self.xsi = xsi
         self.minimize = minimize
 
     def acquisition(self):
         """
-        Calculates the next best sample location using Expected Improvement
+        * Uses the Expected Improvement acquisition function
+        Returns: X_next, EI
+        * X_next is a numpy.ndarray of shape (1,) representing the next best
+          sample point
+        * EI is a numpy.ndarray of shape (ac_samples,) containing the expected
+          improvement of each potential sample
         """
         mu, sigma = self.gp.predict(self.X_s)
 
-        if self.minimize:
-            mu_sample_opt = np.min(self.gp.Y)
-            imp = (mu_sample_opt - mu - self.xsi)
+        if self.minimize is True:
+            optimize = np.amin(self.gp.Y)
+            imp = optimize - mu - self.xsi
+
         else:
-            mu_sample_opt = np.max(self.gp.Y)
-            imp = (mu - mu_sample_opt - self.xsi)
+            optimize = np.amax(self.gp.Y)
+            imp = mu - optimize - self.xsi
 
-        with np.errstate(divide='warn'):
-            Z = np.where(sigma > 0, imp / sigma, 0)
-            EI = imp * norm.cdf(Z) + sigma * norm.pdf(Z)
-            EI[sigma == 0.0] = 0.0
+        Z = np.zeros(sigma.shape[0])
 
-        X_next = self.X_s[np.argmax(EI)]
+        for i in range(sigma.shape[0]):
+            if sigma[i] != 0:
+                Z[i] = imp[i] / sigma[i]
+            else:
+                Z[i] = 0
 
-        return X_next, EI
+        ei = imp * norm.cdf(Z) + sigma * norm.pdf(Z)
+        ei[sigma == 0.0] = 0.0
+
+        index = np.argmax(ei)
+        best_sample = self.X_s[index]
+
+        return (best_sample, ei)
 
     def optimize(self, iterations=100):
         """
-        Optimizes the black-box function
+        Optimize method
         """
-        for _ in range(iterations):
-            X_next, _ = self.acquisition()
 
-            # Stop if X_next has already been sampled
-            if np.any(np.isclose(self.gp.X, X_next)):
+        X_all_s = []
+        for i in range(iterations):
+            # Find the next sampling point xt by optimizing the acquisition
+            # function over the GP: xt = argmaxx μ(x | D1:t−1)
+
+            x_opt, _ = self.acquisition()
+            # If the next proposed point is one that has already been sampled,
+            # optimization should be stopped early
+            if x_opt in [x[0] for x in self.gp.X]:
                 break
 
-            Y_next = self.f(X_next)
-            self.gp.update(X_next, Y_next)
+            y_opt = self.f(x_opt)
 
-        if self.minimize:
-            idx = np.argmin(self.gp.Y)
+            # Add the sample to previous samples
+            # D1: t = {D1: t−1, (xt, yt)} and update the GP
+            self.gp.update(x_opt, y_opt)
+            X_all_s.append(x_opt)
+
+        if self.minimize is True:
+            index = np.argmin(self.gp.Y)
         else:
-            idx = np.argmax(self.gp.Y)
+            index = np.argmax(self.gp.Y)
 
-        X_opt = self.gp.X[idx]
-        Y_opt = self.gp.Y[idx]
+        x_opt = self.gp.X[index]
+        y_opt = self.gp.Y[index]
 
-        return X_opt, Y_opt
+        return x_opt, y_opt
