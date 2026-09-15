@@ -4,7 +4,17 @@
 import numpy as np
 import tensorflow as tf
 
-if not tf.executing_eagerly():
+def _executing_eagerly():
+    """Return eager-mode state across supported TensorFlow versions."""
+    if hasattr(tf, "executing_eagerly"):
+        return tf.executing_eagerly()
+    if (hasattr(tf, "contrib") and hasattr(tf.contrib, "eager") and
+            hasattr(tf.contrib.eager, "executing_eagerly")):
+        return tf.contrib.eager.executing_eagerly()
+    return False
+
+
+if not _executing_eagerly():
     if (hasattr(tf, "contrib") and hasattr(tf.contrib, "eager") and
             hasattr(tf.contrib.eager, "enable_eager_execution")):
         tf.contrib.eager.enable_eager_execution()
@@ -37,7 +47,7 @@ class BaseNST:
         if self._stage >= 10:
             self._validate_weight(var, "var")
 
-        if not tf.executing_eagerly():
+        if not _executing_eagerly():
             if (hasattr(tf, "contrib") and hasattr(tf.contrib, "eager") and
                     hasattr(tf.contrib.eager, "enable_eager_execution")):
                 tf.contrib.eager.enable_eager_execution()
