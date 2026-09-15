@@ -6,6 +6,8 @@ import tensorflow as tf
 
 
 class NST:
+    """Perform neural style transfer with VGG19 features."""
+
     style_layers = [
         "block1_conv1",
         "block2_conv1",
@@ -17,6 +19,7 @@ class NST:
     _stage = 10
 
     def __init__(self, style_image, content_image, alpha=1e4, beta=1, var=10):
+        """Initialize and preprocess the style and content images."""
         self._validate_image(style_image, "style_image")
         self._validate_image(content_image, "content_image")
         self._validate_weight(alpha, "alpha")
@@ -38,26 +41,34 @@ class NST:
 
     @staticmethod
     def _validate_image(image, name):
-        if not isinstance(image, np.ndarray) or image.ndim != 3 or image.shape[2] != 3:
-            raise TypeError(f"{name} must be a numpy.ndarray with shape (h, w, 3)")
+        """Validate an RGB image represented as a NumPy array."""
+        if (not isinstance(image, np.ndarray) or image.ndim != 3 or
+                image.shape[2] != 3):
+            raise TypeError(
+                f"{name} must be a numpy.ndarray with shape (h, w, 3)")
 
     @staticmethod
     def _validate_weight(value, name):
+        """Validate a non-negative numeric cost weight."""
         if (isinstance(value, bool) or
                 not isinstance(value, (int, float, np.number)) or value < 0):
             raise TypeError(f"{name} must be a non-negative number")
 
     @staticmethod
     def scale_image(image):
+        """Resize an RGB image to a maximum dimension of 512 pixels."""
         NST._validate_image(image, "image")
         height, width = image.shape[:2]
         scale = 512 / max(height, width)
-        new_size = (max(1, round(height * scale)), max(1, round(width * scale)))
+        new_size = (max(1, round(height * scale)),
+                    max(1, round(width * scale)))
         scaled = tf.image.resize(image, new_size, method="bicubic")
         return tf.expand_dims(tf.cast(scaled, tf.float32) / 255.0, axis=0)
 
     def load_model(self):
-        base = tf.keras.applications.VGG19(include_top=False, weights="imagenet")
+        """Build the frozen VGG19 feature extraction model."""
+        base = tf.keras.applications.VGG19(
+            include_top=False, weights="imagenet")
 
         def replace_pooling(layer):
             if isinstance(layer, tf.keras.layers.MaxPooling2D):
@@ -74,66 +85,86 @@ class NST:
             if original.get_weights():
                 cloned.set_weights(original.get_weights())
         vgg.trainable = False
-        output_layers = [vgg.get_layer(name).output for name in self.style_layers]
+        output_layers = [vgg.get_layer(
+            name).output for name in self.style_layers]
         output_layers.append(vgg.get_layer(self.content_layer).output)
         self.model = tf.keras.Model(vgg.input, output_layers)
 
     @staticmethod
     def gram_matrix(input_layer):
-        if not isinstance(input_layer, (tf.Tensor, tf.Variable)) or input_layer.shape.rank != 4:
+        """Calculate the normalized Gram matrix for a convolution output."""
+        if (not isinstance(input_layer, (tf.Tensor, tf.Variable)) or
+                input_layer.shape.rank != 4):
             raise TypeError("input_layer must be a tensor of rank 4")
         shape = tf.shape(input_layer)
         features = tf.reshape(input_layer, (shape[0], -1, shape[3]))
         gram = tf.matmul(features, features, transpose_a=True)
-        return gram / tf.cast(shape[1] * shape[2] * shape[3], input_layer.dtype)
+        return gram / tf.cast(shape[1] * shape[2]
+                              * shape[3], input_layer.dtype)
 
     def generate_features(self):
+        """Extract target style Gram matrices and the content feature."""
         vgg19 = tf.keras.applications.vgg19
         style_input = vgg19.preprocess_input(self.style_image * 255.0)
         content_input = vgg19.preprocess_input(self.content_image * 255.0)
         style_outputs = self.model(style_input)
         content_outputs = self.model(content_input)
-        self.gram_style_features = [self.gram_matrix(output) for output in style_outputs[:-1]]
+        self.gram_style_features = [self.gram_matrix(
+            output) for output in style_outputs[:-1]]
         self.content_feature = content_outputs[-1]
 
     def layer_style_cost(self, style_output, gram_target):
-        if not isinstance(style_output, (tf.Tensor, tf.Variable)) or style_output.shape.rank != 4:
+        """Calculate the style cost for one convolution layer."""
+        if (not isinstance(style_output, (tf.Tensor, tf.Variable)) or
+                style_output.shape.rank != 4):
             raise TypeError("style_output must be a tensor of rank 4")
         channels = style_output.shape[-1]
-        expected = f"gram_target must be a tensor of shape [1, {channels}, {channels}] where {channels} is the number of channels in style_output"
+        expected = (f"gram_target must be a tensor of shape [1, {channels}, "
+                    f"{channels}] where {channels} is the number of channels "
+                    "in style_output")
         if (not isinstance(gram_target, (tf.Tensor, tf.Variable)) or
-                gram_target.shape.rank != 3 or tuple(gram_target.shape) != (1, channels, channels)):
+                gram_target.shape.rank != 3 or
+                tuple(gram_target.shape) != (1, channels, channels)):
             raise TypeError(expected)
         gram_output = self.gram_matrix(style_output)
         return tf.reduce_mean(tf.square(gram_output - gram_target))
 
     def style_cost(self, style_outputs):
+        """Calculate the evenly weighted style cost."""
         length = len(self.style_layers)
         if not isinstance(style_outputs, list) or len(style_outputs) != length:
-            raise TypeError(f"style_outputs must be a list with a length of {length}")
-        costs = [self.layer_style_cost(output, target)
-                 for output, target in zip(style_outputs, self.gram_style_features)]
+            raise TypeError(
+                f"style_outputs must be a list with a length of {length}")
+        costs = [self.layer_style_cost(output, target) for output, target in
+                 zip(style_outputs, self.gram_style_features)]
         return tf.add_n(costs) / length
 
     def content_cost(self, content_output):
+        """Calculate the content cost for a generated feature output."""
         expected = tuple(self.content_feature.shape)
         if (not isinstance(content_output, (tf.Tensor, tf.Variable)) or
                 tuple(content_output.shape) != expected):
-            raise TypeError(f"content_output must be a tensor of shape {expected}")
-        return tf.reduce_mean(tf.square(content_output - self.content_feature))
+            raise TypeError(
+                f"content_output must be a tensor of shape {expected}")
+        return tf.reduce_mean(
+            tf.square(content_output - self.content_feature))
 
     def total_cost(self, generated_image):
+        """Calculate the weighted content, style, and variation costs."""
         self._validate_generated(generated_image)
-        processed = tf.keras.applications.vgg19.preprocess_input(generated_image * 255.0)
+        processed = tf.keras.applications.vgg19.preprocess_input(
+            generated_image * 255.0)
         outputs = self.model(processed)
         content = self.content_cost(outputs[-1])
         style = self.style_cost(outputs[:-1])
         if self._stage >= 10:
             variation = self.variational_cost(generated_image)
-            return self.alpha * content + self.beta * style + self.var * variation, content, style, variation
+            total = self.alpha * content + self.beta * style
+            return total + self.var * variation, content, style, variation
         return self.alpha * content + self.beta * style, content, style
 
     def compute_grads(self, generated_image):
+        """Calculate image gradients and the current transfer costs."""
         self._validate_generated(generated_image)
         with tf.GradientTape() as tape:
             tape.watch(generated_image)
@@ -143,25 +174,35 @@ class NST:
 
     @staticmethod
     def variational_cost(generated_image):
-        horizontal = tf.square(generated_image[:, 1:, :-1] - generated_image[:, :-1, :-1])
-        vertical = tf.square(generated_image[:, :-1, 1:] - generated_image[:, :-1, :-1])
+        """Calculate the total neighboring-pixel variation cost."""
+        horizontal = tf.square(
+            generated_image[:, 1:, :-1] - generated_image[:, :-1, :-1])
+        vertical = tf.square(
+            generated_image[:, :-1, 1:] - generated_image[:, :-1, :-1])
         return tf.reduce_sum(horizontal + vertical)
 
     def _validate_generated(self, generated_image):
+        """Validate a generated image against the content image shape."""
         expected = tuple(self.content_image.shape)
         if (not isinstance(generated_image, (tf.Tensor, tf.Variable)) or
                 tuple(generated_image.shape) != expected):
-            raise TypeError(f"generated_image must be a tensor of shape {expected}")
+            raise TypeError(
+                f"generated_image must be a tensor of shape {expected}")
 
-    def generate_image(self, iterations=1000, step=None, lr=0.01, beta1=0.9, beta2=0.99):
+    def generate_image(self, iterations=1000, step=None, lr=0.01,
+                       beta1=0.9, beta2=0.99):
+        """Optimize and return the lowest-cost generated image."""
         if not isinstance(iterations, int) or isinstance(iterations, bool):
             raise TypeError("iterations must be an integer")
         if iterations <= 0:
             raise ValueError("iterations must be positive")
-        if step is not None and (not isinstance(step, int) or isinstance(step, bool)):
+        if (step is not None and
+                (not isinstance(step, int) or isinstance(step, bool))):
             raise TypeError("step must be an integer")
         if step is not None and (step <= 0 or step > iterations):
-            message = "iterations must be positive and less than iterations" if self._stage >= 10 else "step must be positive and less than iterations"
+            message = ("iterations must be positive and less than iterations"
+                       if self._stage >= 10 else
+                       "step must be positive and less than iterations")
             raise ValueError(message)
         if not isinstance(lr, (int, float)) or isinstance(lr, bool):
             raise TypeError("lr must be a number")
@@ -174,18 +215,24 @@ class NST:
                 raise ValueError(f"{name} must be in the range [0, 1]")
 
         generated = tf.Variable(self.content_image)
-        optimizer = tf.keras.optimizers.Adam(learning_rate=lr, beta_1=beta1, beta_2=beta2)
+        optimizer = tf.keras.optimizers.Adam(
+            learning_rate=lr, beta_1=beta1, beta_2=beta2)
         best_cost = float("inf")
         best_image = tf.identity(generated)
         for iteration in range(iterations + 1):
             result = self.compute_grads(generated)
             gradients, total, content, style = result[:4]
             variation = result[4] if self._stage >= 10 else None
-            if step is not None and (iteration % step == 0 or iteration == iterations):
+            if (step is not None and
+                    (iteration % step == 0 or iteration == iterations)):
                 if self._stage >= 10:
-                    print(f"Cost at iteration {iteration}: {total}, content {content}, style {style}, var {variation}")
+                    print(
+                        f"Cost at iteration {iteration}: {total}, "
+                        f"content {content}, style {style}, var {variation}")
                 else:
-                    print(f"Cost at iteration {iteration}: {total}, content {content}, style {style}")
+                    print(
+                        f"Cost at iteration {iteration}: {total}, "
+                        f"content {content}, style {style}")
             if float(total) < best_cost:
                 best_cost = float(total)
                 best_image = tf.identity(generated)
