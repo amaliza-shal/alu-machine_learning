@@ -45,14 +45,15 @@ class BaseNST:
         if (not isinstance(image, np.ndarray) or image.ndim != 3 or
                 image.shape[2] != 3):
             raise TypeError(
-                f"{name} must be a numpy.ndarray with shape (h, w, 3)")
+                "{} must be a numpy.ndarray with shape (h, w, 3)".format(
+                    name))
 
     @staticmethod
     def _validate_weight(value, name):
         """Validate a non-negative numeric cost weight."""
         if (isinstance(value, bool) or
                 not isinstance(value, (int, float, np.number)) or value < 0):
-            raise TypeError(f"{name} must be a non-negative number")
+            raise TypeError("{} must be a non-negative number".format(name))
 
     @staticmethod
     def scale_image(image):
@@ -119,9 +120,9 @@ class BaseNST:
                 style_output.shape.rank != 4):
             raise TypeError("style_output must be a tensor of rank 4")
         channels = style_output.shape[-1]
-        expected = (f"gram_target must be a tensor of shape [1, {channels}, "
-                    f"{channels}] where {channels} is the number of channels "
-                    "in style_output")
+        expected = ("gram_target must be a tensor of shape [1, {}, {}] where "
+                    "{} is the number of channels in style_output").format(
+                        channels, channels, channels)
         if (not isinstance(gram_target, (tf.Tensor, tf.Variable)) or
                 gram_target.shape.rank != 3 or
                 tuple(gram_target.shape) != (1, channels, channels)):
@@ -134,7 +135,8 @@ class BaseNST:
         length = len(self.style_layers)
         if not isinstance(style_outputs, list) or len(style_outputs) != length:
             raise TypeError(
-                f"style_outputs must be a list with a length of {length}")
+                "style_outputs must be a list with a length of {}".format(
+                    length))
         costs = [self.layer_style_cost(output, target) for output, target in
                  zip(style_outputs, self.gram_style_features)]
         return tf.add_n(costs) / length
@@ -145,7 +147,7 @@ class BaseNST:
         if (not isinstance(content_output, (tf.Tensor, tf.Variable)) or
                 tuple(content_output.shape) != expected):
             raise TypeError(
-                f"content_output must be a tensor of shape {expected}")
+                "content_output must be a tensor of shape {}".format(expected))
         return tf.reduce_mean(
             tf.square(content_output - self.content_feature))
 
@@ -187,7 +189,8 @@ class BaseNST:
         if (not isinstance(generated_image, (tf.Tensor, tf.Variable)) or
                 tuple(generated_image.shape) != expected):
             raise TypeError(
-                f"generated_image must be a tensor of shape {expected}")
+                "generated_image must be a tensor of shape {}".format(
+                    expected))
 
     def generate_image(self, iterations=1000, step=None, lr=0.01,
                        beta1=0.9, beta2=0.99):
@@ -210,9 +213,10 @@ class BaseNST:
             raise ValueError("lr must be positive")
         for value, name in ((beta1, "beta1"), (beta2, "beta2")):
             if not isinstance(value, float):
-                raise TypeError(f"{name} must be a float")
+                raise TypeError("{} must be a float".format(name))
             if value < 0 or value > 1:
-                raise ValueError(f"{name} must be in the range [0, 1]")
+                raise ValueError(
+                    "{} must be in the range [0, 1]".format(name))
 
         generated = tf.Variable(self.content_image)
         optimizer = tf.keras.optimizers.Adam(
@@ -227,12 +231,13 @@ class BaseNST:
                     (iteration % step == 0 or iteration == iterations)):
                 if self._stage >= 10:
                     print(
-                        f"Cost at iteration {iteration}: {total}, "
-                        f"content {content}, style {style}, var {variation}")
+                        "Cost at iteration {}: {}, content {}, style {}, "
+                        "var {}".format(
+                            iteration, total, content, style, variation))
                 else:
                     print(
-                        f"Cost at iteration {iteration}: {total}, "
-                        f"content {content}, style {style}")
+                        "Cost at iteration {}: {}, content {}, style {}"
+                        .format(iteration, total, content, style))
             if float(total) < best_cost:
                 best_cost = float(total)
                 best_image = tf.identity(generated)
