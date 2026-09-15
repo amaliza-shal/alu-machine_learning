@@ -72,7 +72,8 @@ class BaseNST:
         else:
             scaled = tf.image.resize_images(
                 image, new_size, method=tf.image.ResizeMethod.BICUBIC)
-        return tf.expand_dims(tf.cast(scaled, tf.float32) / 255.0, axis=0)
+        scaled = tf.clip_by_value(tf.cast(scaled, tf.float32), 0.0, 255.0)
+        return tf.expand_dims(scaled / 255.0, axis=0)
 
     def load_model(self):
         """Build the frozen VGG19 feature extraction model."""
