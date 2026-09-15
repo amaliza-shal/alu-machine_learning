@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Shared implementation for the neural style transfer assignment."""
 
-from numbers import Number
-
 import numpy as np
 import tensorflow as tf
 
@@ -45,7 +43,8 @@ class BaseNST:
 
     @staticmethod
     def _validate_weight(value, name):
-        if isinstance(value, bool) or not isinstance(value, Number) or value < 0:
+        if (isinstance(value, bool) or
+                not isinstance(value, (int, float, np.number)) or value < 0):
             raise TypeError(f"{name} must be a non-negative number")
 
     @staticmethod
