@@ -5,7 +5,10 @@ import numpy as np
 import tensorflow as tf
 
 if not tf.executing_eagerly():
-    if (hasattr(tf, "compat") and hasattr(tf.compat, "v1") and
+    if (hasattr(tf, "contrib") and hasattr(tf.contrib, "eager") and
+            hasattr(tf.contrib.eager, "enable_eager_execution")):
+        tf.contrib.eager.enable_eager_execution()
+    elif (hasattr(tf, "compat") and hasattr(tf.compat, "v1") and
             hasattr(tf.compat.v1, "enable_eager_execution")):
         tf.compat.v1.enable_eager_execution()
     elif hasattr(tf, "enable_eager_execution"):
@@ -35,7 +38,10 @@ class BaseNST:
             self._validate_weight(var, "var")
 
         if not tf.executing_eagerly():
-            if (hasattr(tf, "compat") and hasattr(tf.compat, "v1") and
+            if (hasattr(tf, "contrib") and hasattr(tf.contrib, "eager") and
+                    hasattr(tf.contrib.eager, "enable_eager_execution")):
+                tf.contrib.eager.enable_eager_execution()
+            elif (hasattr(tf, "compat") and hasattr(tf.compat, "v1") and
                     hasattr(tf.compat.v1, "enable_eager_execution")):
                 tf.compat.v1.enable_eager_execution()
             elif hasattr(tf, "enable_eager_execution"):
