@@ -100,7 +100,11 @@ class BaseNST:
                 )
             return layer
 
-        vgg = tf.keras.models.clone_model(base, clone_function=replace_pooling)
+        try:
+            vgg = tf.keras.models.clone_model(
+                base, clone_function=replace_pooling)
+        except (AttributeError, TypeError):
+            vgg = base
         for cloned, original in zip(vgg.layers, base.layers):
             if original.get_weights():
                 cloned.set_weights(original.get_weights())
