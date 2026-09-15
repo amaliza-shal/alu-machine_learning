@@ -4,6 +4,7 @@
 import numpy as np
 import tensorflow as tf
 
+
 def _executing_eagerly():
     """Return eager-mode state across supported TensorFlow versions."""
     if hasattr(tf, "executing_eagerly"):
