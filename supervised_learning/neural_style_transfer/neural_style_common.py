@@ -4,6 +4,13 @@
 import numpy as np
 import tensorflow as tf
 
+if not tf.executing_eagerly():
+    if (hasattr(tf, "compat") and hasattr(tf.compat, "v1") and
+            hasattr(tf.compat.v1, "enable_eager_execution")):
+        tf.compat.v1.enable_eager_execution()
+    elif hasattr(tf, "enable_eager_execution"):
+        tf.enable_eager_execution()
+
 
 class BaseNST:
     """Perform neural style transfer with VGG19 features."""
@@ -28,7 +35,10 @@ class BaseNST:
             self._validate_weight(var, "var")
 
         if not tf.executing_eagerly():
-            if hasattr(tf, "enable_eager_execution"):
+            if (hasattr(tf, "compat") and hasattr(tf.compat, "v1") and
+                    hasattr(tf.compat.v1, "enable_eager_execution")):
+                tf.compat.v1.enable_eager_execution()
+            elif hasattr(tf, "enable_eager_execution"):
                 tf.enable_eager_execution()
             else:
                 tf.config.run_functions_eagerly(True)
