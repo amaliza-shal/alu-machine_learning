@@ -27,7 +27,11 @@ class BaseNST:
         if self._stage >= 10:
             self._validate_weight(var, "var")
 
-        tf.config.run_functions_eagerly(True)
+        if not tf.executing_eagerly():
+            if hasattr(tf, "enable_eager_execution"):
+                tf.enable_eager_execution()
+            else:
+                tf.config.run_functions_eagerly(True)
         self.style_image = self.scale_image(style_image)
         self.content_image = self.scale_image(content_image)
         self.alpha = alpha
@@ -63,7 +67,11 @@ class BaseNST:
         scale = 512 / max(height, width)
         new_size = (max(1, round(height * scale)),
                     max(1, round(width * scale)))
-        scaled = tf.image.resize(image, new_size, method="bicubic")
+        if hasattr(tf.image, "resize"):
+            scaled = tf.image.resize(image, new_size, method="bicubic")
+        else:
+            scaled = tf.image.resize_images(
+                image, new_size, method=tf.image.ResizeMethod.BICUBIC)
         return tf.expand_dims(tf.cast(scaled, tf.float32) / 255.0, axis=0)
 
     def load_model(self):
