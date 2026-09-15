@@ -54,6 +54,13 @@ class BaseNST:
             self.generate_features()
 
     @staticmethod
+    def _rank(tensor):
+        """Return a tensor rank across TensorFlow shape APIs."""
+        if hasattr(tensor.shape, "rank"):
+            return tensor.shape.rank
+        return tensor.shape.ndims
+
+    @staticmethod
     def _validate_image(image, name):
         """Validate an RGB image represented as a NumPy array."""
         if (not isinstance(image, np.ndarray) or image.ndim != 3 or
@@ -118,7 +125,7 @@ class BaseNST:
     def gram_matrix(input_layer):
         """Calculate the normalized Gram matrix for a convolution output."""
         if (not isinstance(input_layer, (tf.Tensor, tf.Variable)) or
-                input_layer.shape.rank != 4):
+                NST._rank(input_layer) != 4):
             raise TypeError("input_layer must be a tensor of rank 4")
         shape = tf.shape(input_layer)
         features = tf.reshape(input_layer, (shape[0], -1, shape[3]))
@@ -140,14 +147,14 @@ class BaseNST:
     def layer_style_cost(self, style_output, gram_target):
         """Calculate the style cost for one convolution layer."""
         if (not isinstance(style_output, (tf.Tensor, tf.Variable)) or
-                style_output.shape.rank != 4):
+                NST._rank(style_output) != 4):
             raise TypeError("style_output must be a tensor of rank 4")
         channels = style_output.shape[-1]
         expected = ("gram_target must be a tensor of shape [1, {}, {}] where "
                     "{} is the number of channels in style_output").format(
                         channels, channels, channels)
         if (not isinstance(gram_target, (tf.Tensor, tf.Variable)) or
-                gram_target.shape.rank != 3 or
+                NST._rank(gram_target) != 3 or
                 tuple(gram_target.shape) != (1, channels, channels)):
             raise TypeError(expected)
         gram_output = self.gram_matrix(style_output)
